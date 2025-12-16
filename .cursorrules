@@ -1,0 +1,25 @@
+# Project Rules
+
+## Tech Stack
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Tailwind CSS v4
+- **Language**: TypeScript
+- **State Management**: React Hooks / Server Actions
+
+## Coding Guidelines
+- **Structure**:
+  - Use the `src/app` directory for pages and routes.
+  - Place reusable components in `src/components`.
+  - Use `src/lib` for utility functions and shared logic.
+- **Components**:
+  - Default to **Server Components**.
+  - Add `'use client'` at the top of the file only when client-side interactivity (state, effects, event listeners) is required.
+- **Styling**:
+  - Use Tailwind CSS utility classes for all styling.
+  - **Tailwind v4 Specifics**:
+    - Use `@theme` in CSS files for variables.
+    - Border width variables must be prefixed with `--border-width-*` (e.g., `--border-width-thick`).
+    - Do not valid `@apply` a class to a sibling class in the same file.
+- **Naming**:
+  - Use `kebab-case` for file names (e.g., `user-profile.tsx`).
+  - Use `PascalCase` for component names.

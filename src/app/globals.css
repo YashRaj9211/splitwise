@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  /* Design Tokens from Image */
+  --color-primary: #4A154B; /* Deep Purple */
+  --color-primary-light: #F8F5FC; /* Light Lilac Background */
+  --color-surface: #FFFFFF;
+  --color-secondary-text: #6B7280;
+  
+  /* Pastel Accent Colors */
+  --color-accent-pink: #F8BBD0;
+  --color-accent-blue: #D1C4E9;
+  --color-accent-yellow: #FFF9C4;
+  --color-accent-green: #C8E6C9;
+
+  /* Spacing & Borders */
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --border-width-thick: 2px;
+}
+
+@layer components {
+  /* --- Card Utilities --- */
+  .card-edged {
+    @apply bg-surface border-thick border-primary rounded-2xl shadow-[4px_4px_0px_var(--color-primary)];
+  }
+
+  .card-flat {
+    @apply bg-surface rounded-xl p-4 border border-gray-100;
+  }
+
+  /* --- Button Utilities --- */
+  .btn-base {
+    @apply flex items-center justify-center gap-2 font-bold transition-transform active:scale-95 cursor-pointer;
+  }
+
+  .btn-primary {
+    @apply flex items-center justify-center gap-2 font-bold transition-transform active:scale-95 cursor-pointer bg-primary text-white rounded-xl px-6 py-3 border-thick border-primary;
+  }
+  
+  .btn-primary:hover {
+    @apply shadow-[2px_2px_0px_rgba(74,21,75,0.4)];
+  }
+
+  .btn-outlined {
+    @apply flex items-center justify-center gap-2 font-bold transition-transform active:scale-95 cursor-pointer bg-transparent border-thick border-primary text-primary rounded-xl px-6 py-3;
+  }
+  
+  .btn-outlined:hover {
+    @apply bg-primary/5;
+  }
+
+  .btn-ghost {
+    @apply flex items-center justify-center gap-2 font-bold transition-transform active:scale-95 cursor-pointer bg-transparent text-primary hover:bg-primary/5 rounded-xl px-4 py-2;
+  }
+  
+  .btn-icon {
+    @apply flex items-center justify-center gap-2 font-bold transition-transform active:scale-95 cursor-pointer w-12 h-12 rounded-full border-thick border-primary bg-primary-light text-primary;
+  }
+
+  .btn-icon:hover {
+     @apply bg-white shadow-[2px_2px_0px_var(--color-primary)];
+  }
+
+  /* --- Form Utilities --- */
+  .input-edged {
+    @apply w-full border-thick border-primary rounded-xl px-4 py-3 bg-white 
+           placeholder-secondary-text focus:outline-none focus:ring-2 focus:ring-primary/20
+           transition-all;
+  }
+
+  /* --- Text Utilities --- */
+  .text-header {
+      @apply text-primary font-bold tracking-tight;
+  }
+}

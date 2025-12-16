@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                   String         @id @default(cuid())
+  email                String         @unique
+  name                 String
+  phone                String?
+  avatarUrl            String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  username             String         @unique
+  password             String
+  expenses             Expense[]
+  splits               ExpenseSplit[]
+  friendshipsReceived  Friendship[]   @relation("FriendshipReceiver")
+  friendshipsInitiated Friendship[]   @relation("FriendshipInitiator")
+  groupMembers         GroupMember[]
+  paymentsMade         Payment[]      @relation("PaymentPayer")
+  paymentsReceived     Payment[]      @relation("PaymentReceiver")
+
+  @@index([email])
+}
+
+model Friendship {
+  id        String           @id @default(cuid())
+  userId    String
+  friendId  String
+  status    FriendshipStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  friend    User             @relation("FriendshipReceiver", fields: [friendId], references: [id], onDelete: Cascade)
+  user      User             @relation("FriendshipInitiator", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
+}
+
+model Group {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  expenses    Expense[]
+  members     GroupMember[]
+
+  @@index([name])
+}
+
+model GroupMember {
+  id       String    @id @default(cuid())
+  groupId  String
+  userId   String
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  icon      String?
+  color     String?
+  createdAt DateTime  @default(now())
+  expenses  Expense[]
+
+  @@index([name])
+}
+
+model Expense {
+  id          String         @id @default(cuid())
+  amount      Decimal        @db.Decimal(12, 2)
+  currency    String         @default("INR")
+  description String
+  note        String?
+  type        ExpenseType
+  expenseDate DateTime
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  userId      String
+  categoryId  String?
+  groupId     String?
+  category    Category?      @relation(fields: [categoryId], references: [id])
+  group       Group?         @relation(fields: [groupId], references: [id])
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  splits      ExpenseSplit[]
+  payments    Payment[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([groupId])
+  @@index([expenseDate])
+  @@index([type])
+}
+
+model ExpenseSplit {
+  id         String    @id @default(cuid())
+  expenseId  String
+  userId     String
+  amount     Decimal   @db.Decimal(12, 2)
+  splitType  SplitType
+  percentage Decimal?  @db.Decimal(5, 2)
+  isPaid     Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  expense    Expense   @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@index([expenseId])
+  @@index([userId])
+  @@index([isPaid])
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  amount      Decimal  @db.Decimal(12, 2)
+  currency    String   @default("USD")
+  description String?
+  paymentDate DateTime @default(now())
+  createdAt   DateTime @default(now())
+  payerId     String
+  receiverId  String
+  expenseId   String?
+  expense     Expense? @relation(fields: [expenseId], references: [id])
+  payer       User     @relation("PaymentPayer", fields: [payerId], references: [id], onDelete: Cascade)
+  receiver    User     @relation("PaymentReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([payerId])
+  @@index([receiverId])
+  @@index([expenseId])
+  @@index([paymentDate])
+}
+
+model Budget {
+  id         String       @id @default(cuid())
+  userId     String
+  categoryId String?
+  amount     Decimal      @db.Decimal(12, 2)
+  period     BudgetPeriod
+  startDate  DateTime
+  endDate    DateTime
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([startDate, endDate])
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+enum GroupRole {
+  ADMIN
+  MEMBER
+}
+
+enum ExpenseType {
+  PERSONAL
+  SPLIT
+  INCOME
+}
+
+enum SplitType {
+  EQUAL
+  EXACT
+  PERCENTAGE
+  SHARES
+}
+
+enum BudgetPeriod {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+  CUSTOM
+}
