@@ -74,7 +74,7 @@ async function main() {
     data: {
       name: 'Vegas Trip',
       description: 'Weekend getaway to Las Vegas',
-      simplifyDebts: true,
+
       members: {
         create: [
           { userId: userAlice.id, role: GroupRole.ADMIN },

@@ -1,7 +1,17 @@
-import { singinFn } from '@/actions/auth';
+'use client';
+
+import { singinFn, AuthState } from '@/actions/auth';
 import Link from 'next/link';
+import { useActionState } from 'react';
+
+const initialState: AuthState = {
+  message: '',
+  errors: null,
+};
 
 export default function LoginPage() {
+  const [state, formAction, isPending] = useActionState(singinFn, initialState);
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-primary-light p-4">
       {/* Background decoration */}
@@ -16,7 +26,13 @@ export default function LoginPage() {
           <p className="text-secondary-text text-sm">Sign in to continue managing your expenses.</p>
         </div>
 
-        <form className="space-y-5" action={singinFn}>
+        <form className="space-y-5" action={formAction}>
+           {state.message && !state.success && (
+            <div className="p-3 text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-md">
+              {state.message}
+            </div>
+           )}
+
           {/* Email Input */}
           <div>
             <label
@@ -61,8 +77,8 @@ export default function LoginPage() {
 
           {/* Submit Button */}
           <div className="pt-2">
-            <button type="submit" className="w-full btn-primary">
-              Sign In
+            <button type="submit" disabled={isPending} className="w-full btn-primary disabled:opacity-70 disabled:cursor-not-allowed">
+              {isPending ? 'Signing In...' : 'Sign In'}
             </button>
           </div>
         </form>
@@ -103,3 +119,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

@@ -1,7 +1,17 @@
-import { signup } from '@/actions/auth';
+'use client';
+
+import { signup, AuthState } from '@/actions/auth';
 import Link from 'next/link';
+import { useActionState } from 'react';
+
+const initialState: AuthState = {
+  message: '',
+  errors: null,
+};
 
 export default function SignupPage() {
+  const [state, formAction, isPending] = useActionState(signup, initialState);
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-primary-light p-4">
       {/* Background decoration - optional, using accent colors */}
@@ -16,7 +26,13 @@ export default function SignupPage() {
           <p className="text-secondary-text text-sm">Join thousands of users managing their expenses effortlessly.</p>
         </div>
 
-        <form className="space-y-5" action={signup}>
+        <form className="space-y-5" action={formAction}>
+           {state.message && (
+            <div className={`p-3 text-sm border rounded-md ${state.success ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
+              {state.message}
+            </div>
+           )}
+
           {/* Full Name Input */}
           <div>
             <label htmlFor="name" className="block text-xs font-bold text-primary uppercase tracking-wider mb-1.5 ml-1">
@@ -29,11 +45,11 @@ export default function SignupPage() {
 
           {/* User name Input */}
           <div>
-            <label htmlFor="name" className="block text-xs font-bold text-primary uppercase tracking-wider mb-1.5 ml-1">
+            <label htmlFor="username" className="block text-xs font-bold text-primary uppercase tracking-wider mb-1.5 ml-1">
               User Name
             </label>
             <div className="relative group">
-              <input id="name" name="username" type="text" placeholder="John Doe" className="input-edged" required />
+              <input id="username" name="username" type="text" placeholder="John Doe" className="input-edged" required />
             </div>
           </div>
 
@@ -79,8 +95,8 @@ export default function SignupPage() {
 
           {/* Submit Button */}
           <div className="pt-2">
-            <button type="submit" className="w-full btn-primary">
-              Sign Up
+            <button type="submit" disabled={isPending} className="w-full btn-primary disabled:opacity-70 disabled:cursor-not-allowed">
+              {isPending ? 'Creating Account...' : 'Sign Up'}
             </button>
           </div>
         </form>
