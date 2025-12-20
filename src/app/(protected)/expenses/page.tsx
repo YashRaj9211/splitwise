@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth';
 import { getUserExpenses } from '@/actions/expense';
-import { getDashboardStats } from '@/actions/dashboard';
+
 import { ExpensesList } from '@/components/expenses/ExpensesList';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -12,11 +12,30 @@ export default async function ExpensesPage() {
   if (!session?.user) return null;
 
   const { expenses, error: expenseError } = await getUserExpenses();
-  const { stats, error: statsError } = await getDashboardStats();
+  const userId = session.user.id;
 
-  const totalBalance = stats?.totalBalance || 0;
-  const youOwe = stats?.youOwe || 0;
-  const youAreOwed = stats?.youAreOwed || 0;
+  let youOwe = 0;
+  let youAreOwed = 0;
+
+  if (expenses) {
+    expenses.forEach((expense) => {
+      const isPayer = expense.userId === userId;
+
+      expense.splits.forEach((split) => {
+        if (split.isPaid) return;
+
+        if (isPayer && split.userId !== userId) {
+          // I paid, they owe me
+          youAreOwed += split.amount;
+        } else if (!isPayer && split.userId === userId) {
+          // They paid, I owe them
+          youOwe += split.amount;
+        }
+      });
+    });
+  }
+
+  const totalBalance = youAreOwed - youOwe;
 
   return (
     <div className="flex flex-col gap-6">

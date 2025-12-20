@@ -11,8 +11,10 @@ export default async function FriendsPage() {
   const session = await auth();
   if (!session?.user) redirect('/auth/login');
 
-  const { friends, error: friendsError } = await getFriends();
-  const { requests, error: requestsError } = await getPendingRequests();
+  const [friendsData, requestsData] = await Promise.all([getFriends(), getPendingRequests()]);
+
+  const { friends, error: friendsError } = friendsData;
+  const { requests, error: requestsError } = requestsData;
 
   return (
     <div className="flex flex-col gap-8">

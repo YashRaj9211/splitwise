@@ -32,8 +32,10 @@ export default async function GroupDetailsPage({ params }: GroupPageProps) {
     return <div className="p-8 text-red-500">You are not a member of this group.</div>;
   }
 
-  const { expenses } = await getGroupExpenses(id);
-  const { balances } = await getGroupBalances(id);
+  const [expensesData, balancesData] = await Promise.all([getGroupExpenses(id), getGroupBalances(id)]);
+  
+  const { expenses } = expensesData;
+  const { balances } = balancesData;
 
   return (
     <GroupDetailsView
