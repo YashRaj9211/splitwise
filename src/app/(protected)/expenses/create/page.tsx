@@ -15,8 +15,8 @@ export default async function CreateExpensePage({ searchParams }: Props) {
   const resolvedParams = await searchParams;
   const groupId = typeof resolvedParams.groupId === 'string' ? resolvedParams.groupId : undefined;
 
-  const { friends } = await getFriends();
-  const { groups } = await getUserGroups();
+  const { friends } = await getFriends(session.user.id!);
+  const { groups } = await getUserGroups(session.user.id!);
 
   return (
     <div className="max-w-2xl mx-auto mt-6">
