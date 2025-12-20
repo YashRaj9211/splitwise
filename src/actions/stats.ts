@@ -21,13 +21,9 @@ export type ExpenseStats = {
   dailyStats: DailyStat[];
 };
 
-export async function getExpenseStats(): Promise<{ stats: ExpenseStats | null; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { stats: null, error: 'Unauthorized' };
-  }
+export async function getExpenseStats(userId: string): Promise<{ stats: ExpenseStats | null; error?: string }> {
+  console.time('stats');
 
-  const userId = session.user.id;
   const now = new Date();
   const startDate = startOfMonth(now);
   const endDate = endOfMonth(now);
@@ -169,7 +165,7 @@ export async function getExpenseStats(): Promise<{ stats: ExpenseStats | null; e
       personal: totalPersonal,
       dailyStats: Array.from(dailyMap.values())
     };
-
+    console.timeEnd('stats');
     return { stats };
   } catch (error) {
     console.error('Error calculating expense stats:', error);

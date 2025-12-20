@@ -122,15 +122,14 @@ export async function getGroupExpenses(groupId: string) {
   }
 }
 
-export async function getUserExpenses() {
-  const session = await auth();
-  if (!session?.user?.id) return { error: 'Unauthorized' };
+export async function getUserExpenses(userId: string) {
+  console.time('getUserExpenses');
 
   try {
     // Fetch expenses where user is payer OR user is involved in split
     const expenses = await prisma.expense.findMany({
       where: {
-        OR: [{ userId: session.user.id }, { splits: { some: { userId: session.user.id } } }]
+        OR: [{ userId: userId }, { splits: { some: { userId: userId } } }]
       },
       include: {
         user: { select: { name: true, avatarUrl: true } }, // Payer
@@ -150,6 +149,7 @@ export async function getUserExpenses() {
       }))
     }));
 
+    console.timeEnd('getUserExpenses');
     return { expenses: safeExpenses };
   } catch (error) {
     console.error('Error fetching user expenses:', error);

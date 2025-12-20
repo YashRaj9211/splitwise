@@ -135,15 +135,12 @@ export async function deleteGroup(groupId: string) {
   }
 }
 
-export async function getUserGroups() {
-  const session = await auth();
-  if (!session?.user?.id) return { error: 'Unauthorized' };
-
+export async function getUserGroups(userId: string) {
   try {
     const groups = await prisma.group.findMany({
       where: {
         members: {
-          some: { userId: session.user.id }
+          some: { userId: userId }
         }
       },
       include: {

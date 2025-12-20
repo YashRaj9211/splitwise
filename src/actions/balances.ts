@@ -11,14 +11,7 @@ export type FriendBalance = {
   amount: number; // Positive = They owe you, Negative = You owe them
 };
 
-export async function getFriendBalances(): Promise<{ balances: FriendBalance[]; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { balances: [], error: 'Unauthorized' };
-  }
-
-  const userId = session.user.id;
-
+export async function getFriendBalances(userId: string): Promise<{ balances: FriendBalance[]; error?: string }> {
   try {
     // 1. Get all ExpenseSplits where I am involved (either as payer or split-er)
     // We need to aggregate by friend.

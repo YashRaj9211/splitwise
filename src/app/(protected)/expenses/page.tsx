@@ -9,10 +9,10 @@ import Link from 'next/link';
 
 export default async function ExpensesPage() {
   const session = await auth();
-  if (!session?.user) return null;
+  if (!session?.user?.id) return null;
 
-  const { expenses, error: expenseError } = await getUserExpenses();
   const userId = session.user.id;
+  const { expenses, error: expenseError } = await getUserExpenses(userId);
 
   let youOwe = 0;
   let youAreOwed = 0;

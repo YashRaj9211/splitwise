@@ -3,13 +3,8 @@
 import prisma from '@/db';
 import { auth } from '@/lib/auth';
 
-export async function getDashboardStats() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { error: 'Unauthorized' };
-  }
-
-  const userId = session.user.id;
+export async function getDashboardStats(userId: string) {
+  console.time('dashboard');
 
   try {
     // 1. Calculate "You Owe"
@@ -68,6 +63,7 @@ export async function getDashboardStats() {
       take: 5
     });
 
+    console.timeEnd('dashboard');
     return {
       stats: {
         totalBalance,

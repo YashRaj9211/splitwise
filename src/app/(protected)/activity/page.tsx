@@ -5,7 +5,8 @@ import { format } from 'date-fns';
 
 export default async function ActivityPage() {
   const session = await auth();
-  const { recentActivity } = await getDashboardStats();
+  if (!session?.user?.id) return null;
+  const { recentActivity } = await getDashboardStats(session.user.id);
 
   return (
     <div className="max-w-2xl mx-auto">

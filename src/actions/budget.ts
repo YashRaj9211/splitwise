@@ -39,13 +39,10 @@ export async function createBudget(data: BudgetInput) {
   }
 }
 
-export async function getBudgets() {
-  const session = await auth();
-  if (!session?.user?.id) return { error: 'Unauthorized' };
-
+export async function getBudgets(userId: string) {
   try {
     const budgets = await prisma.budget.findMany({
-      where: { userId: session.user.id },
+      where: { userId: userId },
       orderBy: { startDate: 'desc' }
     });
     return { budgets };

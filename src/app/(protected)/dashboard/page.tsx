@@ -9,11 +9,14 @@ import { DailySpendGraph } from '@/components/dashboard/DailySpendGraph';
 export default async function DashboardPage() {
   const session = await auth();
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect('/auth/login');
   }
 
-  const [balancesData, statsData] = await Promise.all([getFriendBalances(), getExpenseStats()]);
+  const [balancesData, statsData] = await Promise.all([
+    getFriendBalances(session.user.id),
+    getExpenseStats(session.user.id)
+  ]);
 
   const { balances, error: balancesError } = balancesData;
   const { stats, error: statsError } = statsData;

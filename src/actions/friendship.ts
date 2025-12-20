@@ -132,15 +132,12 @@ export async function updateFriendshipStatus(requestId: string, status: Friendsh
   }
 }
 
-export async function getFriends() {
-  const session = await auth();
-  if (!session?.user?.id) return { error: 'Unauthorized' };
-
+export async function getFriends(userId: string) {
   try {
     const friendships = await prisma.friendship.findMany({
       where: {
         status: FriendshipStatus.ACCEPTED,
-        OR: [{ userId: session.user.id }, { friendId: session.user.id }]
+        OR: [{ userId: userId }, { friendId: userId }]
       },
       include: {
         user: { select: { id: true, name: true, email: true, avatarUrl: true } },
@@ -149,7 +146,7 @@ export async function getFriends() {
     });
 
     // Transform to return just the friend user object
-    const friends = friendships.map(f => (f.userId === session.user?.id ? f.friend : f.user));
+    const friends = friendships.map(f => (f.userId === userId ? f.friend : f.user));
     return { friends };
   } catch (error) {
     console.error('Error fetching friends:', error);
@@ -157,14 +154,11 @@ export async function getFriends() {
   }
 }
 
-export async function getPendingRequests() {
-  const session = await auth();
-  if (!session?.user?.id) return { error: 'Unauthorized' };
-
+export async function getPendingRequests(userId: string) {
   try {
     const requests = await prisma.friendship.findMany({
       where: {
-        friendId: session.user.id,
+        friendId: userId,
         status: FriendshipStatus.PENDING
       },
       include: {

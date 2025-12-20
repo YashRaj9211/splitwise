@@ -9,9 +9,12 @@ import { FriendRequestItem } from '@/components/friends/FriendRequestItem';
 
 export default async function FriendsPage() {
   const session = await auth();
-  if (!session?.user) redirect('/auth/login');
+  if (!session?.user?.id) redirect('/auth/login');
 
-  const [friendsData, requestsData] = await Promise.all([getFriends(), getPendingRequests()]);
+  const [friendsData, requestsData] = await Promise.all([
+    getFriends(session.user.id),
+    getPendingRequests(session.user.id)
+  ]);
 
   const { friends, error: friendsError } = friendsData;
   const { requests, error: requestsError } = requestsData;

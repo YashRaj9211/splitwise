@@ -8,9 +8,8 @@ import { redirect } from 'next/navigation';
 
 export default async function GroupsPage() {
   const session = await auth();
-  if (!session?.user) redirect('/auth/login');
-
-  const { groups, error } = await getUserGroups();
+  if (!session?.user?.id) redirect('/auth/login');
+  const { groups, error } = await getUserGroups(session.user.id);
 
   return (
     <div className="flex flex-col gap-6">
