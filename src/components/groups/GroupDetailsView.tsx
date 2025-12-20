@@ -37,17 +37,17 @@ export function GroupDetailsView({ group, expenses, balances, currentUserId }: P
         </div>
 
         <div className="relative z-10">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-4xl font-black text-primary mb-2">{group.name}</h1>
-              <p className="text-secondary-text max-w-lg mb-4">{group.description}</p>
+          <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+            <div className="w-full md:auto">
+              <h1 className="text-3xl md:text-4xl font-black text-primary mb-2 break-words">{group.name}</h1>
+              <p className="text-secondary-text max-w-lg mb-4 text-sm md:text-base">{group.description}</p>
 
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-3">
                   {members.map((member: any) => (
                     <div
                       key={member.id}
-                      className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 overflow-hidden"
+                      className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 overflow-hidden shrink-0"
                       title={member.name}
                     >
                       {member.avatarUrl ? (
@@ -58,23 +58,23 @@ export function GroupDetailsView({ group, expenses, balances, currentUserId }: P
                     </div>
                   ))}
                 </div>
-                <span className="text-sm font-bold text-gray-500 ml-2">{members.length} members</span>
+                <span className="text-xs md:text-sm font-bold text-gray-500 ml-2 whitespace-nowrap">{members.length} members</span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Link href={`/expenses/create?groupId=${group.id}`}>
-                <Button className="w-full">
+            <div className="flex flex-col gap-2 w-full md:w-auto shrink-0">
+              <Link href={`/expenses/create?groupId=${group.id}`} className="w-full md:w-auto">
+                <Button className="w-full whitespace-nowrap">
                   <Plus className="w-5 h-5" />
                   Add Expense
                 </Button>
               </Link>
-              <div className="flex gap-2">
-                <Button variant="outlined" onClick={() => setIsSettleUpOpen(true)}>
+              <div className="flex gap-2 w-full md:w-auto">
+                <Button variant="outlined" onClick={() => setIsSettleUpOpen(true)} className="flex-1 md:flex-none whitespace-nowrap">
                   <HandCoins className="w-5 h-5" />
                   Settle Up
                 </Button>
-                <Button variant="outlined" onClick={() => setIsSettingsOpen(true)}>
+                <Button variant="outlined" onClick={() => setIsSettingsOpen(true)} className="px-3 shrink-0">
                   <Settings className="w-5 h-5" />
                 </Button>
               </div>

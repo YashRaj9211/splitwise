@@ -61,71 +61,71 @@ export function ExpenseItem({ expense, currentUserId }: ExpenseItemProps) {
       onClick={() => setIsExpanded(!isExpanded)}
     >
       {/* Main Header Row */}
-      <div className="flex items-center justify-between p-2">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between p-3 sm:p-4">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 mr-2">
           <div
-            className={`flex flex-col items-center justify-center w-12 h-14 rounded-lg text-xs font-bold ${
+            className={`flex flex-col items-center justify-center w-10 h-12 sm:w-12 sm:h-14 rounded-lg text-xs font-bold shrink-0 ${
               isFullySettled ? 'bg-gray-100 text-gray-400' : 'bg-primary/10 text-primary'
             }`}
           >
-            <span className="uppercase">{format(date, 'MMM')}</span>
-            <span className="text-lg">{format(date, 'dd')}</span>
+            <span className="uppercase text-[10px] sm:text-xs">{format(date, 'MMM')}</span>
+            <span className="text-base sm:text-lg leading-none">{format(date, 'dd')}</span>
           </div>
-          <div>
-            <h4 className={`font-bold text-lg ${isFullySettled ? 'text-gray-500 line-through' : 'text-primary'}`}>
+          <div className="min-w-0 flex-1">
+            <h4 className={`font-bold text-base sm:text-lg truncate ${isFullySettled ? 'text-gray-500 line-through' : 'text-primary'}`}>
               {expense.description}
             </h4>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 truncate">
               {expense.group && (
-                <span className="font-semibold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded text-xs">
+                <span className="font-semibold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded text-[10px] sm:text-xs shrink-0">
                   {expense.group.name}
                 </span>
               )}
-              <span>
+              <span className="truncate">
                 {isPayer ? 'You' : expense.user.name} paid ${Number(expense.amount).toFixed(2)}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <div className="text-right">
             {expense.type === 'PERSONAL' ? (
               <div className="flex flex-col items-end">
-                <span className="text-xs text-blue-600 font-bold">You spent</span>
-                <span className="font-bold text-blue-600 block text-lg">${Number(expense.amount).toFixed(2)}</span>
+                <span className="text-[10px] sm:text-xs text-blue-600 font-bold">You spent</span>
+                <span className="font-bold text-blue-600 block text-base sm:text-lg">${Number(expense.amount).toFixed(2)}</span>
               </div>
             ) : isPayer ? (
               // Payer View
               <div className="flex flex-col items-end">
                 {Number(myShareWhenPayer) > 0 && (
-                  <span className="text-xs text-gray-400 font-bold mb-0.5">
+                  <span className="text-[10px] sm:text-xs text-gray-400 font-bold mb-0.5 hidden sm:block">
                     your share ${Number(myShareWhenPayer).toFixed(2)}
                   </span>
                 )}
-                <span className="text-xs text-emerald-600 font-bold">You lent</span>
-                <span className="font-bold text-emerald-600 block text-lg">${amountLent.toFixed(2)}</span>
+                <span className="text-[10px] sm:text-xs text-emerald-600 font-bold">You lent</span>
+                <span className="font-bold text-emerald-600 block text-base sm:text-lg">${amountLent.toFixed(2)}</span>
               </div>
             ) : (
               // Debtor View
               <div className="flex flex-col items-end">
                 {iAmSettled ? (
                   <>
-                    <>
+                    <div className="hidden sm:block">
                       <span className="text-xs text-gray-500 font-bold line-through">You owed</span>
                       <span className="font-bold block text-lg text-gray-500 line-through">
                         ${Number(iOwedAmount).toFixed(2)}
                       </span>
-                    </>
-                    <span className="text-xs text-green-600 font-bold flex items-center gap-1">
+                    </div>
+                    <span className="text-[10px] sm:text-xs text-green-600 font-bold flex items-center gap-1">
                       <Check className="w-3 h-3" /> Settled
                     </span>
                   </>
                 ) : (
                   iOweAmount > 0 && (
                     <>
-                      <span className="text-xs text-red-500 font-bold">You owe</span>
-                      <span className="font-bold text-red-500 block text-lg">${Number(iOweAmount).toFixed(2)}</span>
+                      <span className="text-[10px] sm:text-xs text-red-500 font-bold">You owe</span>
+                      <span className="font-bold text-red-500 block text-base sm:text-lg">${Number(iOweAmount).toFixed(2)}</span>
                     </>
                   )
                 )}
@@ -134,7 +134,7 @@ export function ExpenseItem({ expense, currentUserId }: ExpenseItemProps) {
           </div>
           {expense.type !== 'PERSONAL' && (
             <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-gray-400">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-gray-400 w-4 h-4 sm:w-5 sm:h-5">
                 <path
                   d="M5 7.5L10 12.5L15 7.5"
                   stroke="currentColor"

@@ -56,7 +56,7 @@ export default async function ExpensesPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-black text-primary">Expenses</h1>
+        <h1 className="text-3xl font-black text-primary"></h1>
         <Link href="/expenses/create">
           <Button>
             <Plus className="w-5 h-5" />
