@@ -34,8 +34,11 @@ export default async function GroupDetailsPage({ params }: GroupPageProps) {
 
   const [expensesData, balancesData] = await Promise.all([getGroupExpenses(id), getGroupBalances(id)]);
   
-  const { expenses } = expensesData;
-  const { balances } = balancesData;
+  const expenses = 'expenses' in expensesData ? expensesData.expenses : [];
+  const balances = 'balances' in balancesData ? balancesData.balances : [];
+
+  if ('error' in expensesData) console.error('Error fetching expenses:', expensesData.error);
+  if ('error' in balancesData) console.error('Error fetching balances:', balancesData.error);
 
   return (
     <GroupDetailsView

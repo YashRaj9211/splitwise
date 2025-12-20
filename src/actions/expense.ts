@@ -3,7 +3,7 @@
 import prisma from '@/db';
 import { auth } from '@/lib/auth';
 import { ExpenseType, SplitType } from '@/generated/prisma/enums';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
 
 type CreateExpenseInput = {
   description: string;
@@ -70,10 +70,25 @@ export async function createExpense(data: CreateExpenseInput) {
     });
 
     if (data.groupId) {
+      (revalidateTag as any)(`group-expenses-${data.groupId}`);
+      (revalidateTag as any)(`group-balances-${data.groupId}`);
       revalidatePath(`/groups/${data.groupId}`);
     } else {
       revalidatePath('/dashboard');
     }
+
+    // Always invalidate user-specific caches for the payer and potential split participants (simplified for payer here)
+    // Ideally we iterate over all participants, but for now let's at least hit the creator/payer
+    (revalidateTag as any)(`user-expenses-${payerId}`);
+    (revalidateTag as any)(`expense-stats-${payerId}`);
+    (revalidateTag as any)(`friend-balances-${payerId}`);
+
+    // Also invalidate for other participants
+    data.splits.forEach(split => {
+      (revalidateTag as any)(`user-expenses-${split.userId}`);
+      (revalidateTag as any)(`expense-stats-${split.userId}`);
+      (revalidateTag as any)(`friend-balances-${split.userId}`);
+    });
 
     return { success: 'Expense created', expense };
   } catch (error) {
@@ -89,11 +104,33 @@ export async function deleteExpense(expenseId: string) {
   }
 
   try {
+    const expense = await prisma.expense.findUnique({
+      where: { id: expenseId },
+      include: { splits: true }
+    });
+
+    if (!expense) return { error: 'Expense not found' };
+
     await prisma.expense.delete({
       where: { id: expenseId }
     });
 
-    // Naively revalidate
+    // Invalidate caches
+    (revalidateTag as any)(`user-expenses-${expense.userId}`);
+    (revalidateTag as any)(`expense-stats-${expense.userId}`);
+    (revalidateTag as any)(`friend-balances-${expense.userId}`);
+
+    if (expense.groupId) {
+      (revalidateTag as any)(`group-expenses-${expense.groupId}`);
+      (revalidateTag as any)(`group-balances-${expense.groupId}`);
+    }
+
+    expense.splits.forEach(split => {
+      (revalidateTag as any)(`user-expenses-${split.userId}`);
+      (revalidateTag as any)(`expense-stats-${split.userId}`);
+      (revalidateTag as any)(`friend-balances-${split.userId}`);
+    });
+
     revalidatePath('/dashboard');
     return { success: 'Expense deleted' };
   } catch (error) {
@@ -103,58 +140,79 @@ export async function deleteExpense(expenseId: string) {
 }
 
 export async function getGroupExpenses(groupId: string) {
+  const getCachedGroupExpenses = unstable_cache(
+    async (id: string) => {
+      try {
+        const expenses = await prisma.expense.findMany({
+          where: { groupId: id },
+          include: {
+            user: { select: { name: true, avatarUrl: true } }, // Payer
+            splits: { include: { user: { select: { name: true } } } }
+          },
+          orderBy: { expenseDate: 'desc' }
+        });
+        return { expenses };
+      } catch (error) {
+        console.error('Error fetching group expenses:', error);
+        return { error: 'Failed to fetch expenses' };
+      }
+    },
+    ['group-expenses'],
+    {
+      revalidate: 3600,
+      tags: [`group-expenses-${groupId}`]
+    }
+  );
+
   const session = await auth();
   if (!session?.user?.id) return { error: 'Unauthorized' };
 
-  try {
-    const expenses = await prisma.expense.findMany({
-      where: { groupId },
-      include: {
-        user: { select: { name: true, avatarUrl: true } }, // Payer
-        splits: { include: { user: { select: { name: true } } } }
-      },
-      orderBy: { expenseDate: 'desc' }
-    });
-    return { expenses };
-  } catch (error) {
-    console.error('Error fetching group expenses:', error);
-    return { error: 'Failed to fetch expenses' };
-  }
+  return getCachedGroupExpenses(groupId);
 }
 
 export async function getUserExpenses(userId: string) {
-  console.time('getUserExpenses');
+  const getCachedExpenses = unstable_cache(
+    async (id: string) => {
+      console.time('getUserExpenses-computation');
+      try {
+        // Fetch expenses where user is payer OR user is involved in split
+        const expenses = await prisma.expense.findMany({
+          where: {
+            OR: [{ userId: id }, { splits: { some: { userId: id } } }]
+          },
+          include: {
+            user: { select: { name: true, avatarUrl: true } }, // Payer
+            splits: { include: { user: { select: { name: true } } } },
+            group: { select: { name: true } }
+          },
+          orderBy: { expenseDate: 'desc' }
+        });
 
-  try {
-    // Fetch expenses where user is payer OR user is involved in split
-    const expenses = await prisma.expense.findMany({
-      where: {
-        OR: [{ userId: userId }, { splits: { some: { userId: userId } } }]
-      },
-      include: {
-        user: { select: { name: true, avatarUrl: true } }, // Payer
-        splits: { include: { user: { select: { name: true } } } },
-        group: { select: { name: true } }
-      },
-      orderBy: { expenseDate: 'desc' }
-    });
+        const safeExpenses = expenses.map(expense => ({
+          ...expense,
+          amount: Number(expense.amount),
+          splits: expense.splits.map(split => ({
+            ...split,
+            amount: Number(split.amount),
+            percentage: split.percentage ? Number(split.percentage) : null
+          }))
+        }));
 
-    const safeExpenses = expenses.map(expense => ({
-      ...expense,
-      amount: Number(expense.amount),
-      splits: expense.splits.map(split => ({
-        ...split,
-        amount: Number(split.amount),
-        percentage: split.percentage ? Number(split.percentage) : null
-      }))
-    }));
+        console.timeEnd('getUserExpenses-computation');
+        return { expenses: safeExpenses };
+      } catch (error) {
+        console.error('Error fetching user expenses:', error);
+        return { expenses: [], error: 'Failed to fetch expenses' };
+      }
+    },
+    ['user-expenses'],
+    {
+      revalidate: 3600,
+      tags: [`user-expenses-${userId}`]
+    }
+  );
 
-    console.timeEnd('getUserExpenses');
-    return { expenses: safeExpenses };
-  } catch (error) {
-    console.error('Error fetching user expenses:', error);
-    return { error: 'Failed to fetch expenses' };
-  }
+  return getCachedExpenses(userId);
 }
 
 export async function settleExpenseSplit(splitId: string) {
@@ -178,6 +236,20 @@ export async function settleExpenseSplit(splitId: string) {
       where: { id: splitId },
       data: { isPaid: true }
     });
+
+    const payerId = split.expense.userId;
+    const debtorId = split.userId;
+
+    // Invalidate caches
+    (revalidateTag as any)(`friend-balances-${payerId}`);
+    (revalidateTag as any)(`friend-balances-${debtorId}`);
+    (revalidateTag as any)(`expense-stats-${payerId}`);
+    (revalidateTag as any)(`expense-stats-${debtorId}`);
+
+    // Also invalidate lists? Maybe not needed for just settlement status unless UI shows it.
+    // But balances are definitely affected.
+    (revalidateTag as any)(`user-expenses-${payerId}`);
+    (revalidateTag as any)(`user-expenses-${debtorId}`);
 
     revalidatePath('/expenses');
     revalidatePath('/dashboard');
