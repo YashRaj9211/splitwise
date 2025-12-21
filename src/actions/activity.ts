@@ -3,12 +3,7 @@
 import prisma from '@/db';
 import { auth } from '@/lib/auth';
 
-export async function getActivityLog(limit = 20) {
-  const session = await auth();
-  if (!session?.user?.id) return { error: 'Unauthorized' };
-
-  const userId = session.user.id;
-
+export async function getActivityLog(userId: string, limit = 20) {
   try {
     // Fetch expenses where user is involved
     const activities = await prisma.expense.findMany({

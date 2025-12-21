@@ -21,6 +21,7 @@ export type DailyExpenditure = {
 };
 
 export async function getMonthlyExpenditureBreakdown() {
+  console.time('expenditure-details');
   const session = await auth();
   if (!session?.user?.id) {
     return { error: 'Unauthorized' };
@@ -106,7 +107,7 @@ export async function getMonthlyExpenditureBreakdown() {
 
     // Convert to array and sort by date descending
     const result = Object.values(grouped).sort((a, b) => b.date.localeCompare(a.date));
-
+    console.timeEnd('expenditure-details');
     return { breakdown: result };
   } catch (error) {
     console.error('Error fetching expenditure breakdown:', error);

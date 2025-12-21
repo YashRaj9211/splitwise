@@ -7,6 +7,7 @@ import { useActionState } from 'react';
 const initialState: AuthState = {
   message: '',
   errors: null,
+  success: false,
 };
 
 export default function LoginPage() {

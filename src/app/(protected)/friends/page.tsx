@@ -9,10 +9,15 @@ import { FriendRequestItem } from '@/components/friends/FriendRequestItem';
 
 export default async function FriendsPage() {
   const session = await auth();
-  if (!session?.user) redirect('/auth/login');
+  if (!session?.user?.id) redirect('/auth/login');
 
-  const { friends, error: friendsError } = await getFriends();
-  const { requests, error: requestsError } = await getPendingRequests();
+  const [friendsData, requestsData] = await Promise.all([
+    getFriends(session.user.id),
+    getPendingRequests(session.user.id)
+  ]);
+
+  const { friends, error: friendsError } = friendsData;
+  const { requests, error: requestsError } = requestsData;
 
   return (
     <div className="flex flex-col gap-8">

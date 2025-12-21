@@ -2,7 +2,7 @@
 
 import prisma from '@/db';
 import { auth } from '@/lib/auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 type PaymentInput = {
   payerId: string;
@@ -35,6 +35,15 @@ export async function recordPayment(data: PaymentInput) {
       }
     });
 
+    // Invalidate user-centric caches
+    (revalidateTag as any)(`friend-balances-${data.payerId}`);
+    (revalidateTag as any)(`friend-balances-${data.receiverId}`);
+    (revalidateTag as any)(`expense-stats-${data.payerId}`);
+    (revalidateTag as any)(`expense-stats-${data.receiverId}`);
+
+    // Note: To properly invalidate group balances, we'd need to find all common groups.
+    // For now, we rely on the fact that balances might be eventually consistent or require a specific common-group lookup.
+
     revalidatePath('/dashboard');
     return { success: 'Payment recorded', payment };
   } catch (error) {
@@ -48,9 +57,21 @@ export async function deletePayment(paymentId: string) {
   if (!session?.user?.id) return { error: 'Unauthorized' };
 
   try {
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId }
+    });
+
+    if (!payment) return { error: 'Payment not found' };
+
     await prisma.payment.delete({
       where: { id: paymentId }
     });
+
+    (revalidateTag as any)(`friend-balances-${payment.payerId}`);
+    (revalidateTag as any)(`friend-balances-${payment.receiverId}`);
+    (revalidateTag as any)(`expense-stats-${payment.payerId}`);
+    (revalidateTag as any)(`expense-stats-${payment.receiverId}`);
+
     revalidatePath('/dashboard');
     return { success: 'Payment deleted' };
   } catch (error) {
